@@ -16,7 +16,8 @@ from langchain_core.prompts import PromptTemplate
 
 # Streamlit UI 설정
 st.set_page_config(page_title="제2의 나라 chatbot", page_icon=":video_game:")
-st.title("💟 netmarble 제2의 나라: Cross Worlds 💟")
+st.title("💟 netmarble 💟")
+st.header("✨ 제2의 나라: Cross Worlds ✨")
 st.caption("😄 Jiyun Park 😄")
 
 
@@ -198,10 +199,11 @@ if prompt:
         message_placeholder = st.empty()
         stream_handler = StreamHandler(message_placeholder)
         try:
-            full_response = asyncio.run(chain.astream(prompt, history, callbacks=[stream_handler]))
+            full_response = asyncio.run(chain.astream(prompt, history))
             message_placeholder.markdown(full_response)
         except Exception as e:
-            st.error(f"An error occurred: {str(e)}")
+            full_response = f"An error occurred: {str(e)}"
+            st.error(full_response)
     
     st.session_state.messages.append(AIMessage(content=full_response))
 
