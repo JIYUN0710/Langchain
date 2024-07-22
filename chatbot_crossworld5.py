@@ -16,7 +16,7 @@ from langchain_core.prompts import PromptTemplate
 
 # Streamlit UI 설정
 st.set_page_config(page_title="제2의 나라 chatbot", page_icon=":video_game:")
-st.title("💟 netmarble 제2의 나라: Cross Worlds 💟")
+st.title("💟 netmarble 제2의 나라 💟")
 st.caption("😄 Jiyun Park 😄")
 
 
