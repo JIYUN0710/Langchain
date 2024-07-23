@@ -35,7 +35,7 @@ else:
 people = st.selectbox(
     '당신은 제2의 나라 User 인가요?',
     ('YES', 'NO'), 
-    index=2
+    index=0
 )
 
 if people == 'YES':
