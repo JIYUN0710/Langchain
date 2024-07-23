@@ -40,10 +40,12 @@ with st.sidebar:
         email = st.text_input('당신의 게임 이메일을 입력해주세요')
         if len(email)==0:
             st.info("당신의 게임 이메일을 입력해주세요")
+            st.stop()
     elif people == 'NO':
         num = st.text_input('당신의 사원번호를 입력해주세요')
         if len(num)==0:
             st.info("당신의 사원번호를 입력해주세요")
+            st.stop()
 
 
 # CSV 파일 경로 입력
