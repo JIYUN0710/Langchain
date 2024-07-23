@@ -112,9 +112,10 @@ if prompt:
         try:
             response = agent_executor.run(input=prompt, callbacks=[stream_handler])
             st.markdown(stream_handler.text)
+            st.session_state.messages.append(AIMessage(content=stream_handler.text))
         except Exception as e:
-            st.error(f"An error occurred: {str(e)}")
-    
-    st.session_state.messages.append(AIMessage(content=stream_handler.text))
+            error_message = f"An error occurred: {str(e)}"
+            st.error(error_message)
+            st.session_state.messages.append(AIMessage(content=error_message))
 
 st.empty()
