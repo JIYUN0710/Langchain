@@ -32,15 +32,14 @@ else:
     st.stop()
 
 # 선택 박스
-people = st.selectbox(
-    '당신은 제2의 나라 User 인가요?',
-    ('YES', 'NO'), 
-    index=0
-)
-
-if people == 'YES':
-    st.text_input('당신의 게임 이메일을 입력해주세요')
-
+with st.sidebar:
+    people = st.selectbox('당신은 제2의 나라 User 인가요?',
+     ('YES', 'NO'), 
+    index=0)
+    if people == 'YES':
+        st.text_input('당신의 게임 이메일을 입력해주세요')
+    else:
+        st.text_input('당신의 사원번호를 입력해주세요')
 
 
 
