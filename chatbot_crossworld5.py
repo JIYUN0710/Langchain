@@ -1,26 +1,17 @@
 import streamlit as st
 from langchain_openai import ChatOpenAI
 import os
-import bs4
-from langchain import hub
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.document_loaders import WebBaseLoader
 from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.document_loaders.csv_loader import CSVLoader
-from langchain_upstage import ChatUpstage
-from langchain_upstage import UpstageEmbeddings
-from langchain_core.prompts import PromptTemplate
+from langchain_upstage import ChatUpstage, UpstageEmbeddings
 from langchain.tools.retriever import create_retriever_tool
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain.agents import AgentExecutor, create_tool_calling_agent
 from langchain.schema import HumanMessage, AIMessage, SystemMessage
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.callbacks.base import BaseCallbackHandler
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
-import asyncio
 
 # Streamlit UI 설정
 st.set_page_config(page_title="제2의 나라 chatbot", page_icon=":video_game:")
@@ -42,14 +33,17 @@ os.environ["UPSTAGE_API_KEY"] = upstage_api_key
 os.environ["TAVILY_API_KEY"] = tavily_api_key
 
 # CSV 파일 로드 및 처리
-csv_file_path = "total_with_images.csv"
-loader = CSVLoader(file_path=csv_file_path)
-docs = loader.load()
+@st.cache_resource
+def load_data():
+    csv_file_path = "total_with_images.csv"
+    loader = CSVLoader(file_path=csv_file_path)
+    docs = loader.load()
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+    splits = text_splitter.split_documents(docs)
+    vectorstore = FAISS.from_documents(splits, UpstageEmbeddings(model="solar-embedding-1-large"))
+    return vectorstore
 
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-splits = text_splitter.split_documents(docs)
-
-vectorstore = FAISS.from_documents(splits, UpstageEmbeddings(model="solar-embedding-1-large"))
+vectorstore = load_data()
 retriever = vectorstore.as_retriever()
 
 retriever_tool = create_retriever_tool(
@@ -83,7 +77,6 @@ prompt = ChatPromptTemplate.from_messages([
 
 llm = ChatUpstage()
 agent = create_tool_calling_agent(llm, tools, prompt)
-agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
 class StreamHandler(BaseCallbackHandler):
     def __init__(self, container):
@@ -94,16 +87,7 @@ class StreamHandler(BaseCallbackHandler):
         self.text += token
         self.container.markdown(self.text + "▌")
 
-class StreamChain:
-    def __init__(self, executor):
-        self.executor = executor
-    
-    async def astream(self, query, history):
-        stream_handler = StreamHandler(st.empty())
-        response = await self.executor.arun({"input": query, "history": history}, callbacks=[stream_handler])
-        return stream_handler.text  # 최종 텍스트 반환
-
-chain = StreamChain(agent_executor)
+agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
 
 if "messages" not in st.session_state:
     st.session_state.messages = [
@@ -124,13 +108,13 @@ if prompt:
     history = "\n".join([f"{'Human' if isinstance(m, HumanMessage) else 'AI'}: {m.content}" for m in st.session_state.messages[1:-1]])
     
     with st.chat_message("ai"):
+        stream_handler = StreamHandler(st.empty())
         try:
-            full_response = asyncio.run(chain.astream(prompt, history))
-            st.markdown(full_response)
+            response = agent_executor.run(input=prompt, callbacks=[stream_handler])
+            st.markdown(stream_handler.text)
         except Exception as e:
-            full_response = f"An error occurred: {str(e)}"
-            st.error(full_response)
+            st.error(f"An error occurred: {str(e)}")
     
-    st.session_state.messages.append(AIMessage(content=full_response))
+    st.session_state.messages.append(AIMessage(content=stream_handler.text))
 
 st.empty()
