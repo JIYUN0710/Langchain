@@ -28,7 +28,7 @@ import streamlit as st
 sidebar_background_image = """
 <style>
 [data-testid="stSidebar"] {
-    background-image: url("https://github.com/JIYUN0710/Langchain/blob/1e54acae8f96ae445e48425e5a727a9397409e92/crossworld.PNG");
+    background-image: url("https://raw.githubusercontent.com/JIYUN0710/Langchain/1e54acae8f96ae445e48425e5a727a9397409e92/crossworld.PNG");
     background-size: cover;
 }
 </style>
