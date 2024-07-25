@@ -64,6 +64,13 @@ st.markdown(sidebar_style, unsafe_allow_html=True)
 # 사이드바 내용
 with st.sidebar:
     upstage_api_key = st.text_input("Upstage API Key", key="chatbot_api_key", type="password")
+    people = st.selectbox('당신은 제2의 나라 User 인가요?',
+                          ('YES', 'NO'),
+                          index=0)
+    if people == 'YES':
+        email = st.text_input('당신의 게임 이메일을 입력해주세요')
+    elif people == 'NO':
+        num = st.text_input('당신의 사원번호를 입력해주세요')
 
 # API 키 확인 및 메시지 표시
 if not upstage_api_key:
@@ -72,21 +79,15 @@ if not upstage_api_key:
 else:
     os.environ["UPSTAGE_API_KEY"] = upstage_api_key
 
-# 사용자 정보 입력 (사이드바에 유지)
-with st.sidebar:
-    people = st.selectbox('당신은 제2의 나라 User 인가요?',
-                          ('YES', 'NO'),
-                          index=0)
-    if people == 'YES':
-        email = st.text_input('당신의 게임 이메일을 입력해주세요')
-        if not email:
-            st.warning("당신의 게임 이메일을 입력해주세요")
-            st.stop()
-    elif people == 'NO':
-        num = st.text_input('당신의 사원번호를 입력해주세요')
-        if not num:
-            st.warning("당신의  사원번호를 입력해주세요")
-            st.stop()
+# 사용자 정보 확인 및 메시지 표시
+if people == 'YES':
+    if not email:
+        st.warning("당신의 게임 이메일을 입력해주세요.")
+        st.stop()
+elif people == 'NO':
+    if not num:
+        st.warning("당신의 사원번호를 입력해주세요.")
+        st.stop()
 
 
 # CSV 파일 경로 입력
